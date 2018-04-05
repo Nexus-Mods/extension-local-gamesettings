@@ -69,11 +69,8 @@ function updateLocalGameSettings(featureId: string, oldProfile: types.IProfile,
   let copyFiles: Promise<void> = Promise.resolve();
   if (((oldProfile !== null) && (oldProfile !== undefined))
       && (oldProfile.features !== undefined)
-      && oldProfile.features[featureId]) {
-
-    if (!gameSupported(oldProfile.gameId)) {
-        return Promise.reject('Unsupported game.');
-    }
+      && oldProfile.features[featureId]
+      && gameSupported(oldProfile.gameId)) {
 
     // revert game settings for game that was previously active
     const myGames = mygamesPath(oldProfile.gameId);
@@ -90,11 +87,8 @@ function updateLocalGameSettings(featureId: string, oldProfile: types.IProfile,
 
   if ((newProfile !== null) && (newProfile !== undefined)
       && (newProfile.features !== undefined)
-      && (newProfile.features[featureId])) {
-
-    if (!gameSupported(newProfile.gameId)) {
-        return Promise.reject('Unsupported game.');
-    }
+      && (newProfile.features[featureId])
+      && gameSupported(newProfile.gameId)) {
 
     // install game settings for game&profile that will now be active
     const myGames = mygamesPath(newProfile.gameId);
@@ -143,10 +137,7 @@ function init(context): boolean {
               .catch((err) => {
                 util.showError(store.dispatch,
                   'An error occurred applying game settings',
-                  err + '\n\n' +
-                  'Files that should have been under Vortex control are inaccessible. ' +
-                  'Please refrain from locking files that belong to Vortex state, otherwise ' +
-                  'unpredictable errors may happen.');
+                  { error: err, 'old game': oldProfile.gameId, 'new game': newProfile.gameId });
                 return false;
               });
           });
