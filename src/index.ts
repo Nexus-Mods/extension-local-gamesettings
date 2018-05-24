@@ -125,11 +125,11 @@ function init(context): boolean {
         checkGlobalFiles(oldProfile, newProfile)
           .then(missingFiles => {
             if ((missingFiles !== undefined) && (missingFiles !== null)) {
-              const fileList = missingFiles.join('\n');
+              const fileList = missingFiles.map(fileName => `"${fileName}"`).join('\n');
               util.showError(store.dispatch, 'An error occurred activating profile',
                 'Files are missing or not writeable:\n' + fileList + '\n\n' +
                 'Some games need to be run at least once before they can be modded.',
-                false, undefined, false);
+                { allowReport: false });
               return false;
             }
 
