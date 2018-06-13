@@ -137,7 +137,10 @@ function init(context): boolean {
               .catch((err) => {
                 util.showError(store.dispatch,
                   'An error occurred applying game settings',
-                  { error: err, 'old game': oldProfile.gameId, 'new game': newProfile.gameId });
+                  {
+                    error: err.stack,
+                    'old game': (oldProfile || { gameId: 'none' }).gameId,
+                    'new game': (newProfile || { gameId: 'none' }).gameId });
                 return false;
               });
           });
