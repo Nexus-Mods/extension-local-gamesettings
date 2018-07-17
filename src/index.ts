@@ -13,6 +13,7 @@ function copyGameSettings(sourcePath: string, destinationPath: string,
   return Promise.map(files, gameSetting => {
     let source = path.join(sourcePath, gameSetting);
     let destination = path.join(destinationPath, path.basename(gameSetting));
+    let destinationOrig = destination;
 
     if (copyType.startsWith('Glo')) {
       source += '.base';
@@ -32,7 +33,11 @@ function copyGameSettings(sourcePath: string, destinationPath: string,
           // fatal error
           default: return Promise.reject(err);
         }
-      });
+      })
+      .then(() => copyType.endsWith('Glo')
+        ? fs.copyAsync(source, destinationOrig)
+          .then(() =>  fs.copyAsync(source, destinationOrig + '.baked'))
+        : Promise.resolve());
   })
   .then(() => undefined);
 }
