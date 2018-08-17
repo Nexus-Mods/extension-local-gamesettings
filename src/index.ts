@@ -5,6 +5,7 @@ import {
 
 import * as Promise from 'bluebird';
 import * as path from 'path';
+import * as Redux from 'redux';
 import { fs, log, selectors, types, util } from 'vortex-api';
 
 function copyGameSettings(sourcePath: string, destinationPath: string,
