@@ -8,7 +8,7 @@
     "tsc": "tsc -p .",
     "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --display-error-details --progress --profile --color",
     "clear": "rm-local-modules",
-    "build": "npm run tsc && npm run webpack && extractInfo",
+    "build": "npm run webpack && extractInfo",
     "installDev": "copyfiles -u 1 dist/**/* ../../out/bundledPlugins/local-gamesettings",
     "buildDev": "npm run build && npm run installDev"
   },
@@ -20,8 +20,10 @@
     ]
   },
   "devDependencies": {
+    "@types/bluebird": "3.5.20",
     "@types/i18next": "^8.4.0",
     "@types/immutability-helper": "^2.0.15",
+    "@types/node": "^10.3.4",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
     "babel-polyfill": "^6.13.0",
@@ -30,14 +32,15 @@
     "i18next": "^3.5.1",
     "immutability-helper": "^2.2.2",
     "json-loader": "^0.5.4",
-    "vortex-api": "Nexus-Mods/vortex-api",
-    "vortex-parse-ini": "Nexus-Mods/vortex-parse-ini",
     "react": "^15.3.2",
     "react-bootstrap": "^0.30.6",
     "react-dom": "^15.3.2",
     "react-i18next": "^1.10.1",
     "redux-act": "^1.1.0",
     "rm-local-modules": "^0.0.2",
-    "webpack": "^1.13.2"
+    "ts-loader": "^5.1.1",
+    "vortex-api": "Nexus-Mods/vortex-api",
+    "vortex-parse-ini": "Nexus-Mods/vortex-parse-ini",
+    "webpack": "^4.19.1"
   }
 }
