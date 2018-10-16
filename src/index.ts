@@ -25,7 +25,7 @@ function copyGameSettings(sourcePath: string, destinationPath: string,
     log('debug', 'copying profile inis', {source, destination});
 
     return fs.copyAsync(source, destination)
-      .catch((err) => {
+      .catch(err => {
         switch (copyType) {
           // backup missing, create it now from global file
           case 'BacGlo': return fs.copyAsync(destination, source);
@@ -84,8 +84,9 @@ function updateLocalGameSettings(featureId: string, oldProfile: types.IProfile,
 
     copyFiles = copyFiles
     // re-import global files to profile
-    .then(() => copyGameSettings(myGames, profilePath(oldProfile),
-                                 gameSettings, 'GloPro'))
+    .then(() => ((oldProfile as any).pendingRemove === true)
+        ? Promise.resolve()
+        : copyGameSettings(myGames, profilePath(oldProfile), gameSettings, 'GloPro'))
     // restore backup
     .then(() => copyGameSettings(backupPath(oldProfile), myGames,
                                  gameSettings, 'BacGlo'));
@@ -144,9 +145,9 @@ function init(context): boolean {
                 util.showError(store.dispatch,
                   'An error occurred applying game settings',
                   {
-                    error: err.stack,
-                    'old game': (oldProfile || { gameId: 'none' }).gameId,
-                    'new game': (newProfile || { gameId: 'none' }).gameId });
+                    error: err,
+                    'Old Game': (oldProfile || { gameId: 'none' }).gameId,
+                    'New Game': (newProfile || { gameId: 'none' }).gameId });
                 return false;
               });
           });
