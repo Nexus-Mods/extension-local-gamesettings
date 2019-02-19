@@ -9,6 +9,10 @@ const gameSupport = {
     mygamesPath: 'skyrim',
     gameSettingsFiles: ['Skyrim.ini', 'SkyrimPrefs.ini'],
   },
+  enderal: {
+    mygamesPath: 'Enderal',
+    gameSettingsFiles: ['Enderal.ini', 'EnderalPrefs.ini'],
+  },
   skyrimse: {
     mygamesPath: 'Skyrim Special Edition',
     gameSettingsFiles: ['Skyrim.ini', 'SkyrimPrefs.ini'],
