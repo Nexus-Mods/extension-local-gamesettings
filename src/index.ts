@@ -130,7 +130,7 @@ function init(context): boolean {
 
         const newProfile = state.persistent.profiles[nextProfileId];
 
-        checkGlobalFiles(oldProfile, newProfile)
+        return checkGlobalFiles(oldProfile, newProfile)
           .then(missingFiles => {
             if ((missingFiles !== undefined) && (missingFiles !== null)) {
               const fileList = missingFiles.map(fileName => `"${fileName}"`).join('\n');
