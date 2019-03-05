@@ -122,12 +122,13 @@ function init(context): boolean {
   context.once(() => {
     const store: Redux.Store<types.IState> = context.api.store;
 
-    context.api.onStateChange(['settings', 'profiles', 'activeProfileId'],
-      (prev: string, current: string) => {
+    context.api.events.on('profile-will-change', (nextProfileId: string) => {
         const state = store.getState();
 
-        const oldProfile = util.getSafe(state, ['persistent', 'profiles', prev], undefined);
-        const newProfile = state.persistent.profiles[current];
+        const oldProfile = util.getSafe(state,
+          ['settings', 'profiles', 'activeProfileId'], undefined);
+
+        const newProfile = state.persistent.profiles[nextProfileId];
 
         checkGlobalFiles(oldProfile, newProfile)
           .then(missingFiles => {
