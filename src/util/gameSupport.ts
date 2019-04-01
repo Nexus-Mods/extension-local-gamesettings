@@ -41,10 +41,6 @@ const gameSupport = {
     mygamesPath: 'Oblivion',
     gameSettingsFiles: ['Oblivion.ini'],
   },
-  morrowind: {
-    mygamesPath: 'Morrowind',
-    gameSettingsFiles: [],
-  },
 };
 
 export function gameSupported(gameMode: string): boolean {
