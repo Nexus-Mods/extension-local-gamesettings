@@ -24,20 +24,20 @@ function copyGameSettings(sourcePath: string, destinationPath: string,
 
     log('debug', 'copying profile inis', {source, destination});
 
-    return fs.copyAsync(source, destination)
+    return fs.copyAsync(source, destination, { noSelfCopy: true })
       .catch(err => {
         switch (copyType) {
           // backup missing, create it now from global file
-          case 'BacGlo': return fs.copyAsync(destination, source);
+          case 'BacGlo': return fs.copyAsync(destination, source, { noSelfCopy: true });
           // profile ini missing, create it now from global file
-          case 'ProGlo': return fs.copyAsync(destination, source);
+          case 'ProGlo': return fs.copyAsync(destination, source, { noSelfCopy: true });
           // fatal error
           default: return Promise.reject(err);
         }
       })
       .then(() => copyType.endsWith('Glo')
-        ? fs.copyAsync(source, destinationOrig)
-          .then(() =>  fs.copyAsync(source, destinationOrig + '.baked'))
+        ? fs.copyAsync(source, destinationOrig, { noSelfCopy: true })
+          .then(() =>  fs.copyAsync(source, destinationOrig + '.baked', { noSelfCopy: true }))
         : Promise.resolve());
   })
   .then(() => undefined);
