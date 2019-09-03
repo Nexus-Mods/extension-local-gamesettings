@@ -142,6 +142,10 @@ function init(context): boolean {
             }
 
             return updateLocalGameSettings('local_game_settings', oldProfile, newProfile)
+              .catch(util.UserCanceled, err => {
+                log('info', 'User canceled game settings update', err);
+                return false;
+              })
               .catch((err) => {
                 util.showError(store.dispatch,
                   'An error occurred applying game settings',
