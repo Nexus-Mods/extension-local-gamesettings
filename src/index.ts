@@ -113,6 +113,63 @@ function updateLocalGameSettings(featureId: string, oldProfile: types.IProfile,
   return Promise.resolve(copyFiles);
 }
 
+function onSwitchGameProfile(store: Redux.Store<any>,
+                             oldProfile: types.IProfile,
+                             newProfile: types.IProfile)
+                             : Promise<boolean> {
+  return checkGlobalFiles(oldProfile, newProfile)
+    .then(missingFiles => {
+      if ((missingFiles !== undefined) && (missingFiles !== null)) {
+        const fileList = missingFiles.map(fileName => `"${fileName}"`).join('\n');
+        util.showError(store.dispatch, 'An error occurred activating profile',
+          'Files are missing or not writeable:\n' + fileList + '\n\n' +
+          'Some games need to be run at least once before they can be modded.',
+          { allowReport: false });
+        return false;
+      }
+
+      return updateLocalGameSettings('local_game_settings', oldProfile, newProfile)
+        .then(() => true)
+        .catch(util.UserCanceled, err => {
+          log('info', 'User canceled game settings update', err);
+          return false;
+        })
+        .catch((err) => {
+          util.showError(store.dispatch,
+            'An error occurred applying game settings',
+            {
+              error: err,
+              'Old Game': (oldProfile || { gameId: 'none' }).gameId,
+              'New Game': (newProfile || { gameId: 'none' }).gameId,
+            });
+          return false;
+        });
+    });
+}
+
+function onDeselectGameProfile(store: Redux.Store<any>,
+                               profile: types.IProfile)
+                               : Promise<boolean> {
+   return checkGlobalFiles(undefined, profile)
+    .then(missingFiles => {
+      if ((missingFiles !== undefined) && (missingFiles !== null)) {
+        const fileList = missingFiles.map(fileName => `"${fileName}"`).join('\n');
+        util.showError(store.dispatch, 'An error occurred activating profile',
+          'Files are missing or not writeable:\n' + fileList + '\n\n' +
+          'Some games need to be run at least once before they can be modded.',
+          { allowReport: false });
+        return false;
+      }
+    })
+    .then(() => {
+      const myGames = mygamesPath(profile.gameId);
+      const gameSettings = gameSettingsFiles(profile.gameId, null);
+
+      return copyGameSettings(myGames, profilePath(profile), gameSettings, 'GloPro')
+        .then(() => true);
+    });
+}
+
 function init(context): boolean {
   context.registerProfileFeature(
     'local_game_settings', 'boolean', 'settings', 'Game Settings',
@@ -130,32 +187,16 @@ function init(context): boolean {
         const oldProfile = state.persistent.profiles[oldProfileId];
         const newProfile = state.persistent.profiles[nextProfileId];
 
-        return checkGlobalFiles(oldProfile, newProfile)
-          .then(missingFiles => {
-            if ((missingFiles !== undefined) && (missingFiles !== null)) {
-              const fileList = missingFiles.map(fileName => `"${fileName}"`).join('\n');
-              util.showError(store.dispatch, 'An error occurred activating profile',
-                'Files are missing or not writeable:\n' + fileList + '\n\n' +
-                'Some games need to be run at least once before they can be modded.',
-                { allowReport: false });
-              return false;
-            }
-
-            return updateLocalGameSettings('local_game_settings', oldProfile, newProfile)
-              .catch(util.UserCanceled, err => {
-                log('info', 'User canceled game settings update', err);
-                return false;
-              })
-              .catch((err) => {
-                util.showError(store.dispatch,
-                  'An error occurred applying game settings',
-                  {
-                    error: err,
-                    'Old Game': (oldProfile || { gameId: 'none' }).gameId,
-                    'New Game': (newProfile || { gameId: 'none' }).gameId });
-                return false;
-              });
-          });
+        if (oldProfile.gameId === newProfile.gameId) {
+          return onSwitchGameProfile(store, oldProfile, newProfile);
+        } else {
+          const lastActiveProfileId = selectors.lastActiveProfileForGame(state, newProfile.gameId);
+          const lastActiveProfile = state.persistent.profiles[lastActiveProfileId];
+          return onDeselectGameProfile(store, oldProfile)
+            .then((success: boolean) => success
+              ? onSwitchGameProfile(store, lastActiveProfile, newProfile)
+              : Promise.resolve(success));
+        }
       });
 
   });
