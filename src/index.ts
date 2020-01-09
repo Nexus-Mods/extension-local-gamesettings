@@ -14,7 +14,7 @@ function copyGameSettings(sourcePath: string, destinationPath: string,
   return Promise.map(files, gameSetting => {
     let source = path.join(sourcePath, gameSetting);
     let destination = path.join(destinationPath, path.basename(gameSetting));
-    let destinationOrig = destination;
+    const destinationOrig = destination;
 
     if (copyType.startsWith('Glo')) {
       source += '.base';
@@ -125,9 +125,9 @@ function init(context): boolean {
     context.api.events.on('profile-will-change', (nextProfileId: string) => {
         const state = store.getState();
 
-        const oldProfile = util.getSafe(state,
+        const oldProfileId = util.getSafe(state,
           ['settings', 'profiles', 'activeProfileId'], undefined);
-
+        const oldProfile = state.persistent.profiles[oldProfileId];
         const newProfile = state.persistent.profiles[nextProfileId];
 
         return checkGlobalFiles(oldProfile, newProfile)
