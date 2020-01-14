@@ -187,13 +187,20 @@ function init(context): boolean {
         const oldProfile = state.persistent.profiles[oldProfileId];
         const newProfile = state.persistent.profiles[nextProfileId];
 
-        if (oldProfile.gameId === newProfile.gameId) {
+        const oldGameId = util.getSafe(oldProfile, ['gameId'], undefined);
+        const newGameId = util.getSafe(newProfile, ['gameId'], undefined);
+
+        if (oldGameId === newGameId) {
           return onSwitchGameProfile(store, oldProfile, newProfile);
         } else {
-          const lastActiveProfileId = selectors.lastActiveProfileForGame(state, newProfile.gameId);
-          const lastActiveProfile = state.persistent.profiles[lastActiveProfileId];
+          const lastActiveProfileId = newProfile !== undefined
+            ? selectors.lastActiveProfileForGame(state, newProfile.gameId)
+            : undefined;
+          const lastActiveProfile = newProfile !== undefined
+            ? state.persistent.profiles[lastActiveProfileId]
+            : undefined;
           return onDeselectGameProfile(store, oldProfile)
-            .then((success: boolean) => success
+            .then((success: boolean) => success && (newProfile !== undefined)
               ? onSwitchGameProfile(store, lastActiveProfile, newProfile)
               : Promise.resolve(success));
         }
