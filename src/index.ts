@@ -170,6 +170,18 @@ function onDeselectGameProfile(store: Redux.Store<any>,
     });
 }
 
+function bakeSettings(api: types.IExtensionApi, profile: types.IProfile): Promise<void> {
+  const state: types.IState = api.store.getState();
+  const gameMods = state.persistent.mods[profile.gameId] || [];
+  const mods = Object.keys(gameMods)
+    .filter(key => util.getSafe(profile, ['modState', key, 'enabled'], false))
+    .map(key => gameMods[key]);
+
+  return util.sortMods(profile.gameId, mods, api)
+    .then(sortedMods =>
+      api.emitAndAwait('bake-settings', profile.gameId, sortedMods, profile));
+}
+
 function init(context): boolean {
   context.registerProfileFeature(
     'local_game_settings', 'boolean', 'settings', 'Game Settings',
@@ -179,7 +191,8 @@ function init(context): boolean {
   context.once(() => {
     const store: Redux.Store<types.IState> = context.api.store;
 
-    context.api.events.on('profile-will-change', (nextProfileId: string) => {
+    context.api.events.on('profile-will-change',
+                          (nextProfileId: string, enqueue: (cb: () => Promise<void>) => void) => {
         const state = store.getState();
 
         const oldProfileId = util.getSafe(state,
@@ -191,7 +204,11 @@ function init(context): boolean {
         const newGameId = util.getSafe(newProfile, ['gameId'], undefined);
 
         if (oldGameId === newGameId) {
-          return onSwitchGameProfile(store, oldProfile, newProfile);
+          enqueue(() => {
+            return bakeSettings(context.api, oldProfile)
+              .then(() => onSwitchGameProfile(store, oldProfile, newProfile)
+              .then(() => null));
+          });
         } else {
           const lastActiveProfileId = newProfile !== undefined
             ? selectors.lastActiveProfileForGame(state, newProfile.gameId)
@@ -199,10 +216,12 @@ function init(context): boolean {
           const lastActiveProfile = newProfile !== undefined
             ? state.persistent.profiles[lastActiveProfileId]
             : undefined;
-          return onDeselectGameProfile(store, oldProfile)
+          enqueue(() => bakeSettings(context.api, oldProfile)
+            .then(() => onDeselectGameProfile(store, oldProfile))
             .then((success: boolean) => success && (newProfile !== undefined)
               ? onSwitchGameProfile(store, lastActiveProfile, newProfile)
-              : Promise.resolve(success));
+              : Promise.resolve(success))
+            .then(() => null));
         }
       });
 
