@@ -71,13 +71,12 @@ function checkGlobalFiles(oldProfile: types.IProfile,
 }
 
 function updateLocalGameSettings(featureId: string, oldProfile: types.IProfile,
-                                 newProfile: types.IProfile) {
+                                 newProfile: types.IProfile): Promise<void> {
   let copyFiles: Promise<void> = Promise.resolve();
-  if (((oldProfile !== null) && (oldProfile !== undefined))
+  if (!!oldProfile
       && (oldProfile.features !== undefined)
       && oldProfile.features[featureId]
       && gameSupported(oldProfile.gameId)) {
-
     // revert game settings for game that was previously active
     const myGames = mygamesPath(oldProfile.gameId);
     const gameSettings = gameSettingsFiles(oldProfile.gameId, null);
@@ -92,11 +91,10 @@ function updateLocalGameSettings(featureId: string, oldProfile: types.IProfile,
                                  gameSettings, 'BacGlo'));
   }
 
-  if ((newProfile !== null) && (newProfile !== undefined)
+  if (!!newProfile
       && (newProfile.features !== undefined)
       && (newProfile.features[featureId])
       && gameSupported(newProfile.gameId)) {
-
     // install game settings for game&profile that will now be active
     const myGames = mygamesPath(newProfile.gameId);
     const gameSettings = gameSettingsFiles(newProfile.gameId, null);
@@ -150,7 +148,10 @@ function onSwitchGameProfile(store: Redux.Store<any>,
 function onDeselectGameProfile(store: Redux.Store<any>,
                                profile: types.IProfile)
                                : Promise<boolean> {
-   return checkGlobalFiles(undefined, profile)
+  if (!gameSupported(profile.gameId)) {
+    return Promise.resolve(true);
+  }
+  return checkGlobalFiles(undefined, profile)
     .then(missingFiles => {
       if ((missingFiles !== undefined) && (missingFiles !== null)) {
         const fileList = missingFiles.map(fileName => `"${fileName}"`).join('\n');
@@ -182,8 +183,8 @@ function bakeSettings(api: types.IExtensionApi, profile: types.IProfile): Promis
       api.emitAndAwait('bake-settings', profile.gameId, sortedMods, profile));
 }
 
-function init(context): boolean {
-  context.registerProfileFeature(
+function init(context: types.IExtensionContext): boolean {
+  (context as any).registerProfileFeature(
     'local_game_settings', 'boolean', 'settings', 'Game Settings',
     'This profile has its own game settings',
     () => gameSupported(selectors.activeGameId(context.api.store.getState())));
@@ -207,6 +208,7 @@ function init(context): boolean {
           enqueue(() => {
             return bakeSettings(context.api, oldProfile)
               .then(() => onSwitchGameProfile(store, oldProfile, newProfile)
+              .then(() => bakeSettings(context.api, newProfile))
               .then(() => null));
           });
         } else {
@@ -218,9 +220,18 @@ function init(context): boolean {
             : undefined;
           enqueue(() => bakeSettings(context.api, oldProfile)
             .then(() => onDeselectGameProfile(store, oldProfile))
+            // all settings changes that have been made in the meantime still belong
+            // to the last active profile. Just in case lastActiveProfile and newProfile are
+            // different (which should *not* ever be the case) we need to bake these
+            // settings now so they don't get overridden
+            .tap(() => bakeSettings(context.api, lastActiveProfile))
             .then((success: boolean) => success && (newProfile !== undefined)
               ? onSwitchGameProfile(store, lastActiveProfile, newProfile)
               : Promise.resolve(success))
+            .then(() => bakeSettings(context.api, newProfile))
+            .catch(err => {
+              context.api.showErrorNotification('failed to swap game settings file', err);
+            })
             .then(() => null));
         }
       });
