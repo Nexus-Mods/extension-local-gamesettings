@@ -172,6 +172,9 @@ function onDeselectGameProfile(store: Redux.Store<any>,
 }
 
 function bakeSettings(api: types.IExtensionApi, profile: types.IProfile): Promise<void> {
+  if (profile === undefined) {
+    return Promise.resolve();
+  }
   const state: types.IState = api.store.getState();
   const gameMods = state.persistent.mods[profile.gameId] || [];
   const mods = Object.keys(gameMods)
