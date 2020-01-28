@@ -148,9 +148,7 @@ function onSwitchGameProfile(store: Redux.Store<any>,
 function onDeselectGameProfile(store: Redux.Store<any>,
                                profile: types.IProfile)
                                : Promise<boolean> {
-  // It's possible for the profile to be undefined at this point
-  //  if/when the user is not actively managing any games.
-  if (!profile && !gameSupported(profile.gameId)) {
+  if (!gameSupported(profile.gameId)) {
     return Promise.resolve(true);
   }
   return checkGlobalFiles(undefined, profile)
