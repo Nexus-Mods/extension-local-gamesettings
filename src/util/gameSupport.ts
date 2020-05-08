@@ -4,7 +4,17 @@ import { types } from 'vortex-api';
 
 const app = appIn || remote.app;
 
-const gameSupport = {
+export interface ISettingsFile {
+  name: string;
+  optional: boolean;
+}
+
+export interface IGameSupportEntry {
+  mygamesPath: string;
+  gameSettingsFiles: Array<string | ISettingsFile>;
+}
+
+const gameSupport: { [gameId: string]: IGameSupportEntry } = {
   skyrim: {
     mygamesPath: 'skyrim',
     gameSettingsFiles: ['Skyrim.ini', 'SkyrimPrefs.ini'],
@@ -35,7 +45,8 @@ const gameSupport = {
   },
   falloutnv: {
     mygamesPath: 'FalloutNV',
-    gameSettingsFiles: ['Fallout.ini', 'FalloutPrefs.ini'],
+    gameSettingsFiles: ['Fallout.ini', 'FalloutPrefs.ini',
+                        { name: 'FalloutCustom.ini', optional: true }],
   },
   oblivion: {
     mygamesPath: 'Oblivion',
@@ -52,16 +63,19 @@ export function mygamesPath(gameMode: string): string {
                    gameSupport[gameMode].mygamesPath);
 }
 
-export function gameSettingsFiles(gameMode: string, customPath: string): string[] {
+export function gameSettingsFiles(gameMode: string, customPath: string): ISettingsFile[] {
   const fileNames = gameSupport[gameMode].gameSettingsFiles;
+
+  const mapFile = (input: string | ISettingsFile): ISettingsFile => typeof(input) === 'string'
+    ? { name: input, optional: false }
+    : input;
+
   if (customPath === null) {
-    return fileNames;
+    return fileNames.map(mapFile);
   } else {
-    const fileList: string[] = [];
-    fileNames.forEach(file => {
-      fileList.push(path.join(customPath, file));
-    });
-    return fileList;
+    return fileNames
+      .map(mapFile)
+      .map(input => ({ name: path.join(customPath, input.name), optional: input.optional }));
   }
 }
 

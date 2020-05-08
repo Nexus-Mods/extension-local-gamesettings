@@ -1,5 +1,5 @@
 import {
-  backupPath, gameSettingsFiles, gameSupported,
+  backupPath, gameSettingsFiles, gameSupported, ISettingsFile,
   mygamesPath, profilePath,
 } from './util/gameSupport';
 
@@ -9,11 +9,10 @@ import * as Redux from 'redux';
 import { fs, log, selectors, types, util } from 'vortex-api';
 
 function copyGameSettings(sourcePath: string, destinationPath: string,
-                          files: string[],
-                          copyType: string): Promise<void> {
+                          files: ISettingsFile[], copyType: string): Promise<void> {
   return Promise.map(files, gameSetting => {
-    let source = path.join(sourcePath, gameSetting);
-    let destination = path.join(destinationPath, path.basename(gameSetting));
+    let source = path.join(sourcePath, gameSetting.name);
+    let destination = path.join(destinationPath, path.basename(gameSetting.name));
     const destinationOrig = destination;
 
     if (copyType.startsWith('Glo')) {
@@ -26,6 +25,9 @@ function copyGameSettings(sourcePath: string, destinationPath: string,
 
     return fs.copyAsync(source, destination, { noSelfCopy: true })
       .catch(err => {
+        if (gameSetting.optional) {
+          return Promise.resolve();
+        }
         switch (copyType) {
           // backup missing, create it now from global file
           case 'BacGlo': return fs.copyAsync(destination, source, { noSelfCopy: true });
@@ -45,7 +47,7 @@ function copyGameSettings(sourcePath: string, destinationPath: string,
 
 function checkGlobalFiles(oldProfile: types.IProfile,
                           newProfile: types.IProfile) {
-  let fileList: string[] = [];
+  let fileList: ISettingsFile[] = [];
 
   if ((oldProfile !== undefined) && gameSupported(oldProfile.gameId)) {
     fileList = fileList.concat(gameSettingsFiles(oldProfile.gameId,
@@ -57,17 +59,17 @@ function checkGlobalFiles(oldProfile: types.IProfile,
                                                  mygamesPath(newProfile.gameId)));
   }
 
-  return Promise.map(fileList,
-                     file =>
-                         fs.statAsync(file).then(() => null).catch(() => file))
-      .then((missingFiles: string[]) => {
-        missingFiles = missingFiles.filter(file => file !== null);
-        if (missingFiles.length > 0) {
-          return Promise.resolve(missingFiles);
-        } else {
-          return Promise.resolve(null);
-        }
-      });
+  return Promise.filter(fileList, file => file.optional
+      ? Promise.resolve(false)
+      : fs.statAsync(file.name).then(() => false).catch(() => true))
+    .then((missingFiles: ISettingsFile[]) => {
+      missingFiles = missingFiles.filter(file => file !== null);
+      if (missingFiles.length > 0) {
+        return Promise.resolve(missingFiles);
+      } else {
+        return Promise.resolve(null);
+      }
+    });
 }
 
 function updateLocalGameSettings(featureId: string, oldProfile: types.IProfile,
