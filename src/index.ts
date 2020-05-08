@@ -40,13 +40,15 @@ function copyGameSettings(sourcePath: string, destinationPath: string,
       .then(() => copyType.endsWith('Glo')
         ? fs.copyAsync(source, destinationOrig, { noSelfCopy: true })
           .then(() =>  fs.copyAsync(source, destinationOrig + '.baked', { noSelfCopy: true }))
+          .catch({ code: 'ENOENT' }, err =>
+            gameSetting.optional ? Promise.resolve() : Promise.reject(err))
         : Promise.resolve());
   })
   .then(() => undefined);
 }
 
 function checkGlobalFiles(oldProfile: types.IProfile,
-                          newProfile: types.IProfile) {
+                          newProfile: types.IProfile): Promise<ISettingsFile[]> {
   let fileList: ISettingsFile[] = [];
 
   if ((oldProfile !== undefined) && gameSupported(oldProfile.gameId)) {
@@ -63,7 +65,6 @@ function checkGlobalFiles(oldProfile: types.IProfile,
       ? Promise.resolve(false)
       : fs.statAsync(file.name).then(() => false).catch(() => true))
     .then((missingFiles: ISettingsFile[]) => {
-      missingFiles = missingFiles.filter(file => file !== null);
       if (missingFiles.length > 0) {
         return Promise.resolve(missingFiles);
       } else {
