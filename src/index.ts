@@ -61,6 +61,8 @@ function checkGlobalFiles(oldProfile: types.IProfile,
                                                  mygamesPath(newProfile.gameId)));
   }
 
+  fileList = util.unique(fileList, item => item.name);
+
   return Promise.filter(fileList, file => file.optional
       ? Promise.resolve(false)
       : fs.statAsync(file.name).then(() => false).catch(() => true))
@@ -121,7 +123,7 @@ function onSwitchGameProfile(store: Redux.Store<any>,
   return checkGlobalFiles(oldProfile, newProfile)
     .then(missingFiles => {
       if ((missingFiles !== undefined) && (missingFiles !== null)) {
-        const fileList = missingFiles.map(fileName => `"${fileName}"`).join('\n');
+        const fileList = missingFiles.map(fileName => `"${fileName.name}"`).join('\n');
         util.showError(store.dispatch, 'An error occurred activating profile',
           'Files are missing or not writeable:\n' + fileList + '\n\n' +
           'Some games need to be run at least once before they can be modded.',
@@ -159,7 +161,7 @@ function onDeselectGameProfile(store: Redux.Store<any>,
   return checkGlobalFiles(undefined, profile)
     .then(missingFiles => {
       if ((missingFiles !== undefined) && (missingFiles !== null)) {
-        const fileList = missingFiles.map(fileName => `"${fileName}"`).join('\n');
+        const fileList = missingFiles.map(fileName => `"${fileName.name}"`).join('\n');
         util.showError(store.dispatch, 'An error occurred activating profile',
           'Files are missing or not writeable:\n' + fileList + '\n\n' +
           'Some games need to be run at least once before they can be modded.',
