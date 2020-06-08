@@ -239,6 +239,10 @@ function init(context: types.IExtensionContext): boolean {
               ? onSwitchGameProfile(store, lastActiveProfile, newProfile)
               : Promise.resolve(success))
             .then(() => bakeSettings(context.api, newProfile))
+            .catch(util.CycleError, err => {
+              // this should be reported to the user elsewhere
+              log('warn', 'settings couldn\'t be baked because mod rules contain cycles', err);
+            })
             .catch(err => {
               context.api.showErrorNotification('failed to swap game settings file', err);
             })
