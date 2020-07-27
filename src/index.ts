@@ -244,7 +244,9 @@ function init(context: types.IExtensionContext): boolean {
               log('warn', 'settings couldn\'t be baked because mod rules contain cycles', err);
             })
             .catch(err => {
-              context.api.showErrorNotification('failed to swap game settings file', err);
+              const usercanceled = (err instanceof util.UserCanceled);
+              context.api.showErrorNotification('failed to swap game settings file', err,
+                { allowReport: !usercanceled });
             })
             .then(() => null));
         }
