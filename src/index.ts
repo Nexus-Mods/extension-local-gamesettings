@@ -1,6 +1,6 @@
 import {
-  backupPath, gameSettingsFiles, gameSupported, ISettingsFile,
-  mygamesPath, profilePath,
+  backupPath, gameSettingsFiles, gameSupported, initGameSupport,
+  ISettingsFile, mygamesPath, profilePath,
 } from './util/gameSupport';
 
 import Promise from 'bluebird';
@@ -201,6 +201,11 @@ function init(context: types.IExtensionContext): boolean {
 
   context.once(() => {
     const store: Redux.Store<types.IState> = context.api.store;
+
+    context.api.onStateChange(
+      ['settings', 'gameMode', 'discovered'], (previous, current) => {
+        initGameSupport(store);
+      });
 
     context.api.events.on('profile-will-change',
                           (nextProfileId: string, enqueue: (cb: () => Promise<void>) => void) => {
