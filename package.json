@@ -1,6 +1,6 @@
 {
   "name": "local-gamesettings",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Management for local game settings",
   "main": "./out/index.js",
   "repository": "",

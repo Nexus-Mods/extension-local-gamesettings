@@ -15,6 +15,15 @@ export interface IGameSupportEntry {
   gameSettingsFiles: Array<string | ISettingsFile>;
 }
 
+const gameSupportXboxPass: { [gameId: string]: any } = {
+  skyrimse: {
+    mygamesPath: 'Skyrim Special Edition MS',
+  },
+  fallout4: {
+    mygamesPath: 'Fallout4 MS',
+  },
+}
+
 const gameSupport: { [gameId: string]: IGameSupportEntry } = {
   skyrim: {
     mygamesPath: 'skyrim',
@@ -63,6 +72,14 @@ export function initGameSupport(store: Redux.Store<types.IState>) {
   const state: types.IState = store.getState();
 
   const {discovered} = state.settings.gameMode;
+
+  Object.keys(gameSupportXboxPass).forEach(gameMode => {
+    if (discovered[gameMode]?.path !== undefined) {
+      if (discovered[gameMode].path.toLowerCase().includes('3275kfvn8vcwc')) {
+        gameSupport[gameMode].mygamesPath = gameSupportXboxPass[gameMode].mygamesPath;
+      }
+    }
+  })
 
   if (discovered['enderalspecialedition']?.path !== undefined) {
     if (discovered['enderalspecialedition']?.path.toLowerCase().includes('skyrim')) {
