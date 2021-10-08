@@ -1,9 +1,6 @@
-import { app as appIn, remote } from 'electron';
 import * as path from 'path';
 import * as Redux from 'redux';
-import { types } from 'vortex-api';
-
-const app = appIn || remote.app;
+import { types, util } from 'vortex-api';
 
 export interface ISettingsFile {
   name: string;
@@ -100,7 +97,7 @@ export function gameSupported(gameMode: string): boolean {
 }
 
 export function mygamesPath(gameMode: string): string {
-  return path.join(app.getPath('documents'), 'My Games',
+  return path.join(util.getVortexPath('documents'), 'My Games',
                    gameSupport[gameMode].mygamesPath);
 }
 
@@ -121,9 +118,9 @@ export function gameSettingsFiles(gameMode: string, customPath: string): ISettin
 }
 
 export function profilePath(profile: types.IProfile): string {
-  return path.join(app.getPath('userData'), profile.gameId, 'profiles', profile.id);
+  return path.join(util.getVortexPath('userData'), profile.gameId, 'profiles', profile.id);
 }
 
 export function backupPath(profile: types.IProfile): string {
-  return path.join(app.getPath('userData'), profile.gameId);
+  return path.join(util.getVortexPath('userData'), profile.gameId);
 }
