@@ -32,7 +32,8 @@ const gameSupport: { [gameId: string]: IGameSupportEntry } = {
   },
   skyrimse: {
     mygamesPath: 'Skyrim Special Edition',
-    gameSettingsFiles: ['Skyrim.ini', 'SkyrimPrefs.ini'],
+    gameSettingsFiles: ['Skyrim.ini', 'SkyrimPrefs.ini',
+                        { name: 'SkyrimCustom.ini', optional: true }],
   },
   enderalspecialedition: {
     mygamesPath: 'Enderal Special Edition',
@@ -44,11 +45,13 @@ const gameSupport: { [gameId: string]: IGameSupportEntry } = {
   },
   fallout3: {
     mygamesPath: 'Fallout3',
-    gameSettingsFiles: ['Fallout.ini'],
+    gameSettingsFiles: ['Fallout.ini', 'FalloutPrefs.ini',
+                        { name: 'FalloutCustom.ini', optional: true }],
   },
   fallout4: {
     mygamesPath: 'Fallout4',
-    gameSettingsFiles: ['Fallout4.ini', 'Fallout4Prefs.ini'],
+    gameSettingsFiles: ['Fallout4.ini', 'Fallout4Prefs.ini',
+                        { name: 'Fallout4Custom.ini', optional: true }],
   },
   fallout4vr: {
     mygamesPath: 'Fallout4VR',
