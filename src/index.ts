@@ -201,6 +201,8 @@ function init(context: types.IExtensionContext): boolean {
 
   context.once(() => {
     const store: Redux.Store<types.IState> = context.api.store;
+  
+    initGameSupport(store);
 
     context.api.onStateChange(
       ['settings', 'gameMode', 'discovered'], (previous, current) => {
