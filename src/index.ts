@@ -194,6 +194,8 @@ function bakeSettings(api: types.IExtensionApi, profile: types.IProfile): Promis
 }
 
 function init(context: types.IExtensionContext): boolean {
+  initGameSupport(context.api);
+
   (context as any).registerProfileFeature(
     'local_game_settings', 'boolean', 'settings', 'Game Settings',
     'This profile has its own game settings',
@@ -202,13 +204,6 @@ function init(context: types.IExtensionContext): boolean {
   context.once(() => {
     const store: Redux.Store<types.IState> = context.api.store;
   
-    initGameSupport(store);
-
-    context.api.onStateChange(
-      ['settings', 'gameMode', 'discovered'], (previous, current) => {
-        initGameSupport(store);
-      });
-
     context.api.events.on('profile-will-change',
                           (nextProfileId: string, enqueue: (cb: () => Promise<void>) => void) => {
         const state = store.getState();
