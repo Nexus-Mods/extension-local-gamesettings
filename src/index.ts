@@ -196,7 +196,7 @@ function bakeSettings(api: types.IExtensionApi, profile: types.IProfile): Promis
 function init(context: types.IExtensionContext): boolean {
   initGameSupport(context.api);
 
-  (context as any).registerProfileFeature(
+  context.registerProfileFeature(
     'local_game_settings', 'boolean', 'settings', 'Game Settings',
     'This profile has its own game settings',
     () => gameSupported(selectors.activeGameId(context.api.store.getState())));
