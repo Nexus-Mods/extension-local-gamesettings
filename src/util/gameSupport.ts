@@ -85,13 +85,13 @@ const gameSupport = util.makeOverlayableDictionary<string, IGameSupportEntry>({
   },
 }, (gameId: string) => {
   const discovery = discoveryForGame(gameId);
-  if ((discovery.path !== undefined)
+  if ((discovery?.path !== undefined)
       && (gameId === 'enderalspecialedition')
       && discovery.path.includes('skyrim')) {
     return 'enderalseOverlay';
   }
   else {
-    return discovery.store;
+    return discovery?.store;
   }
 });
 
