@@ -48,6 +48,10 @@ const gameSupport = util.makeOverlayableDictionary<string, IGameSupportEntry>({
     mygamesPath: 'Fallout4VR',
     gameSettingsFiles: ['Fallout4Custom.ini', 'Fallout4Prefs.ini'],
   },
+  starfield: {
+    mygamesPath: 'Starfield',
+    gameSettingsFiles: ['StarfieldCustom.ini', 'StarfieldPrefs.ini'],
+  },
   falloutnv: {
     mygamesPath: 'FalloutNV',
     gameSettingsFiles: ['Fallout.ini', 'FalloutPrefs.ini',
