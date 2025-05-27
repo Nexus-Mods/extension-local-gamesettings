@@ -61,6 +61,10 @@ const gameSupport = util.makeOverlayableDictionary<string, IGameSupportEntry>({
     mygamesPath: 'Oblivion',
     gameSettingsFiles: ['Oblivion.ini'],
   },
+  oblivionremastered: {
+    mygamesPath: path.join('Oblivion Remastered', 'Saved', 'Config', 'Windows'),
+    gameSettingsFiles: ['Altar.ini'],
+  },
 }, {
   xbox: {
     skyrimse: {
