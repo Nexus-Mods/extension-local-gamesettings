@@ -193,6 +193,41 @@ function bakeSettings(api: types.IExtensionApi, profile: types.IProfile): Promis
       api.emitAndAwait('bake-settings', profile.gameId, sortedMods, profile));
 }
 
+function testGlobalFiles(api: types.IExtensionApi): Promise<types.ITestResult> {
+  const gameMode = selectors.activeGameId(api.getState());
+  if (!gameSupported(gameMode)) {
+    return Promise.resolve(undefined);
+  }
+  let activeProfile = selectors.activeProfile(api.getState());
+  if (activeProfile?.gameId == null) {
+    return Promise.resolve(undefined);
+  }
+
+  return checkGlobalFiles(undefined, activeProfile)
+    .then(missingFiles => {
+      if (missingFiles == null || missingFiles.length === 0) {
+        return Promise.resolve(undefined);
+      }
+      const fileList = missingFiles.map(fileName => `"${fileName.name}"`).join('\n');
+      return Promise.resolve<types.ITestResult>({
+        description: {
+          short: 'Missing or not writeable game files',
+          long: 'Files are missing or not writeable:\n' + fileList + '\n\n' +
+          'Some games need to be run at least once before they can be modded.',
+        },
+        severity: 'warning',
+        onRecheck: () => {
+          const state = api.getState();
+          activeProfile = selectors.activeProfile(state);
+          return checkGlobalFiles(undefined, activeProfile)
+            .then(recheckMissingFiles => (!recheckMissingFiles || recheckMissingFiles.length === 0))
+              ? Promise.resolve(undefined)
+              : Promise.resolve(testGlobalFiles(api));
+        },
+      });
+    });
+  };
+
 function init(context: types.IExtensionContext): boolean {
   initGameSupport(context.api);
 
@@ -200,6 +235,9 @@ function init(context: types.IExtensionContext): boolean {
     'local_game_settings', 'boolean', 'settings', 'Game Settings',
     'This profile has its own game settings',
     () => gameSupported(selectors.activeGameId(context.api.store.getState())));
+
+  context.registerTest('check-global-files', 'gamemode-activated',
+    () => testGlobalFiles(context.api));
 
   context.once(() => {
     const store: Redux.Store<types.IState> = context.api.store;
